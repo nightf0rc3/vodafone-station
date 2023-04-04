@@ -78,7 +78,7 @@ export default class VodafoneBox {
       const encryptData = SJCLWrapper.sjclCCMencrypt (this.key, jsData, this.iv, authData, SJCLWrapper.DEFAULT_SJCL_TAGLENGTH);
       const loginData = { 'EncryptData': encryptData, 'Name': name, 'AuthData': authData };
       try {
-        const { data, headers } = await this.put<any>('ajaxSet_Password.php', loginData);
+        const { data, headers } = await this.post<any>('ajaxSet_Password.php', loginData);
         if (data['p_status'].indexOf('Fail') > -1) {
           throw new Error('Login failed, wrong password provided');
         }
@@ -109,7 +109,7 @@ export default class VodafoneBox {
   }
 
   public async logout() {
-    await this.put('logout.php');
+    await this.post('logout.php');
   }
 
   public async getConnectedDevices() {
