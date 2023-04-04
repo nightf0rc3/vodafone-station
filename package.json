@@ -1,6 +1,6 @@
 {
   "name": "vodafone-station",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "API wrapper for the Vodafone Station (ARRIS TG3442DE)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
