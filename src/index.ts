@@ -1,6 +1,89 @@
 import axios, { AxiosInstance } from 'axios';
 import SJCLWrapper from './SJCLWrapper';
 
+export type Protocol = "TCP" | "UDP";
+export type RuleSource = "Manual" | "UPnP";
+export type BooleanString = "true" | "false";
+
+export type PortMappings = {
+  mapping: [
+    name: string,
+    ipAddress: string,
+    protocol: Protocol,
+    externalPort: number,
+    externalPortEndRange: number,
+    internalPort: number,
+    internalPortEndRange: number,
+    enable: BooleanString,
+    index: string,
+    ruleSource: RuleSource
+  ][];
+  trigger: [
+    name: string,
+    triggerPortStart: number,
+    triggerPortEnd: number,
+    triggerProtocol: Protocol,
+    forwardPortStart: string,
+    forwardPortEnd: number,
+    forwardProtocol: Protocol,
+    enable: BooleanString,
+    index: string
+  ][];
+  dhcpInfo: string[];
+  dhcpclient: [name: string, port: string][];
+};
+
+export type NewPortMappingRule = {
+  name: string;
+  ipAddress: string;
+  protocol: Protocol;
+  externalPort: string;
+  externalPortEndRange: string;
+  internalPort: string;
+  internalPortEndRange: string;
+  enable: BooleanString;
+  index: -1;
+};
+
+export type EditPortMappingRule = {
+  name: string;
+  ipAddress: string;
+  protocol: Protocol;
+  externalPort: number;
+  externalPortEndRange: number;
+  internalPort: number;
+  internalPortEndRange: number;
+  enable: BooleanString;
+  index: string;
+  ruleSource: RuleSource;
+};
+
+export type DeletePortMappingRule = {
+  index: string;
+};
+
+export type MEditRule =
+  | NewPortMappingRule
+  | EditPortMappingRule
+  | DeletePortMappingRule;
+
+export type TEditRule = {
+  name: string;
+  triggerPortStart: number;
+  triggerPortEnd: number;
+  triggerProtocol: Protocol;
+  forwardPortStart: string;
+  forwardPortEnd: number;
+  forwardProtocol: Protocol;
+  enable: BooleanString;
+  index: string;
+};
+
+export type UpdatePortMappings = {
+  mEditRule: MEditRule[];
+  tEditRule: TEditRule[];
+};
+
 export default class VodafoneBox {
     private host: string;
     private client: AxiosInstance;
@@ -110,6 +193,31 @@ export default class VodafoneBox {
 
   public async logout() {
     await this.post('logout.php');
+  }
+
+  public async getPortMappings() {
+    try {
+      const { data } = await this.get<PortMappings>(
+        "net_port_mapping_data.php",
+        "{%22mapping%22:{},%22trigger%22:{},%22dhcpInfo%22:{},%22dhcpclient%22:{}}"
+      );
+      return { portMappings: data };
+    } catch (err) {
+      throw new Error(
+        `Received unexpected message from server: ${err.response.data}`
+      );
+    }
+  }
+
+  public async updatePortMappings(data: UpdatePortMappings) {
+    try {
+      await this.post<null>("ajaxSet_net_port_mapping_data.php", data);
+      return null;
+    } catch (err) {
+      throw new Error(
+        `Received unexpected message from server: ${JSON.stringify(err.response.data)}`
+      );
+    }
   }
 
   public async getConnectedDevices() {
